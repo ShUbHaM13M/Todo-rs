@@ -1,12 +1,12 @@
 #[derive(Debug)]
 pub struct Todo {
-    pub id: u64,
+    pub id: i64,
     pub label: String,
     pub completed: bool,
 }
 
 impl Todo {
-    pub fn new(id: u64, label: String) -> Self {
+    pub fn new(id: i64, label: String) -> Self {
         Self {
             id,
             label,

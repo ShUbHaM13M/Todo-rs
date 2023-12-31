@@ -1,32 +1,39 @@
 pub mod app;
 pub mod db;
+pub mod event;
 pub mod todo;
+pub mod tui;
+pub mod ui;
+pub mod update;
+
+use std::io::stderr;
 
 use app::App;
-use rusqlite::Result;
-use todo::Todo;
+use event::EventHandler;
+use ratatui::{prelude::CrosstermBackend, Terminal};
+use tui::Tui;
+use update::update;
 
-fn main() -> Result<()> {
-    let app = App::new();
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut app = App::new();
 
-    let query = "SELECT * FROM todos";
-    let mut stmt = app.todos_db.conn.prepare(&query)?;
-    let todos = stmt.query_map([], |row| {
-        Ok(Todo {
-            id: row.get(0)?,
-            label: row.get(1)?,
-            completed: row.get(2)?,
-        })
-    })?;
-    let todos: Vec<Todo> = todos.map(|x| x.unwrap()).collect();
+    let backend = CrosstermBackend::new(stderr());
+    let terminal = Terminal::new(backend)?;
+    let events = EventHandler::new(250);
+    let mut tui = Tui::new(terminal, events);
+    tui.enter()?;
 
-    if todos.len() == 0 {
-        println!("Nothing left todo 😎");
-    } else {
-        for todo in todos {
-            println!("Todo: {:?}", todo);
+    while !app.should_quit {
+        tui.draw(&mut app)?;
+
+        match tui.events.next()? {
+            event::Event::Tick => {}
+            event::Event::Key(key_event) => update(&mut app, key_event),
+            event::Event::Mouse(_) => {}
+            event::Event::Resize(_, _) => {}
         }
     }
 
+    tui.exit()?;
     Ok(())
 }
