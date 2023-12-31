@@ -44,7 +44,9 @@ fn render_body(app: &mut App, chunk: Rect, frame: &mut Frame) {
         let mut completed = Span::styled("[ ] ", Style::default());
         let mut label = Span::styled(todo.label.clone(), Style::default());
         if todo.completed {
-            completed = completed.content("[x] ").style(Style::default().green());
+            completed = completed
+                .content("[] ")
+                .style(Style::default().green().bold());
             label = label.set_style(Style::default().bold().crossed_out());
         }
         let list_item = ListItem::new(Line::from(vec![completed, label]));
@@ -53,9 +55,8 @@ fn render_body(app: &mut App, chunk: Rect, frame: &mut Frame) {
 
     let list = List::new(list_items)
         .block(header_block)
-        .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
         .highlight_spacing(HighlightSpacing::Always)
-        .highlight_symbol(">> ")
+        .highlight_symbol(" ")
         .repeat_highlight_symbol(true);
 
     frame.render_stateful_widget(list, chunk, &mut app.selected_todo);
@@ -83,7 +84,8 @@ fn render_main(app: &mut App, frame: &mut Frame) {
 
 fn render_add_todo_popup(app: &App, frame: &mut Frame) {
     let popup_block = Block::default()
-        .title(" Add new todo ")
+        .title("  Add new todo ")
+        .style(Style::default().black().on_light_cyan())
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded);
 
