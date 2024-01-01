@@ -80,5 +80,15 @@ impl TodoDb {
         }
     }
 
+    pub fn delete_todo(&self, id: i64) {
+        let query = "
+            DELETE FROM todos
+            WHERE id = (?1)
+        ";
+        if let Ok(mut stmt) = self.conn.prepare(query) {
+            let _ = stmt.execute([id]);
+        }
+    }
+
     pub fn update_todo(&self, id: u64) {}
 }

@@ -95,10 +95,26 @@ fn render_add_todo_popup(app: &App, frame: &mut Frame) {
     frame.render_widget(todo_label, area);
 }
 
+fn render_delete_todo_popup(app: &mut App, frame: &mut Frame) {
+    if let Some(selected_todo) = app.get_selected_todo() {
+        let popup_block = Block::default()
+            .title(" Delete ")
+            .style(Style::default().black().on_light_red())
+            .borders(Borders::ALL)
+            .border_type(BorderType::Rounded);
+
+        let todo_label = Paragraph::new(selected_todo.label.clone()).block(popup_block);
+        let area = centered_rect(60, 20, frame.size());
+        frame.render_widget(todo_label, area);
+    }
+}
+
 pub fn render(app: &mut App, frame: &mut Frame) {
     render_main(app, frame);
 
-    if let CurrentScreen::AddTodo = &app.current_screen {
-        render_add_todo_popup(app, frame);
+    match &app.current_screen {
+        CurrentScreen::Main => {}
+        CurrentScreen::AddTodo => render_add_todo_popup(app, frame),
+        CurrentScreen::DeleteTodo => render_delete_todo_popup(app, frame),
     }
 }

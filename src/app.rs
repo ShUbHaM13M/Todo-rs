@@ -79,22 +79,43 @@ impl App {
     }
 
     pub fn toggle_selected_todo(&mut self) {
+        if let Some(id) = self.get_selected_todo_id() {
+            if let Some(todo) = self.todos.get_mut(&id) {
+                todo.toggle();
+                self.todos_db.toggle_todo(todo.id, todo.completed);
+            }
+        };
+    }
+
+    pub fn get_selected_todo(&self) -> Option<&Todo> {
+        if let Some(id) = self.get_selected_todo_id() {
+            return Some(self.todos.get(&id).unwrap());
+        }
+        None
+    }
+
+    fn get_selected_todo_id(&self) -> Option<i64> {
         let selected_index = match self.selected_todo.selected() {
             Some(index) => index,
-            None => return,
+            None => return None,
         };
 
         let id = match self.todos.keys().nth(selected_index) {
             Some(key) => key.clone(),
             None => {
                 eprintln!("Invalid index: {}", selected_index);
-                return;
+                return None;
             }
         };
 
-        if let Some(todo) = self.todos.get_mut(&id) {
-            todo.toggle();
-            self.todos_db.toggle_todo(todo.id, todo.completed);
+        return Some(id);
+    }
+
+    pub fn delete_selected_todo(&mut self) {
+        if let Some(id) = self.get_selected_todo_id() {
+            if let Some(todo) = self.todos.remove(&id) {
+                self.todos_db.delete_todo(todo.id);
+            };
         }
     }
 }
