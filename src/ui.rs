@@ -109,6 +109,18 @@ fn render_delete_todo_popup(app: &mut App, frame: &mut Frame) {
     }
 }
 
+fn render_edit_todo_popup(app: &mut App, frame: &mut Frame) {
+    let popup_block = Block::default()
+        .title(" Edit ")
+        .style(Style::default().black().on_light_blue())
+        .borders(Borders::ALL)
+        .border_type(BorderType::Rounded);
+
+    let todo_label = Paragraph::new(app.todo_input.clone()).block(popup_block);
+    let area = centered_rect(60, 20, frame.size());
+    frame.render_widget(todo_label, area);
+}
+
 pub fn render(app: &mut App, frame: &mut Frame) {
     render_main(app, frame);
 
@@ -116,5 +128,6 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         CurrentScreen::Main => {}
         CurrentScreen::AddTodo => render_add_todo_popup(app, frame),
         CurrentScreen::DeleteTodo => render_delete_todo_popup(app, frame),
+        CurrentScreen::EditTodo => render_edit_todo_popup(app, frame),
     }
 }

@@ -8,6 +8,7 @@ pub enum CurrentScreen {
     Main,
     AddTodo,
     DeleteTodo,
+    EditTodo,
 }
 
 pub struct App {
@@ -117,5 +118,15 @@ impl App {
                 self.todos_db.delete_todo(todo.id);
             };
         }
+    }
+
+    pub fn update_selected_todo(&mut self) {
+        if let Some(id) = self.get_selected_todo_id() {
+            if let Some(todo) = self.todos.get_mut(&id) {
+                todo.label = self.todo_input.clone();
+                self.todo_input.clear();
+                self.todos_db.update_todo(id, &todo.label.as_str());
+            }
+        };
     }
 }

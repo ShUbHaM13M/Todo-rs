@@ -90,5 +90,15 @@ impl TodoDb {
         }
     }
 
-    pub fn update_todo(&self, id: u64) {}
+    pub fn update_todo(&self, id: i64, label: &str) {
+        let query = "
+            UPDATE todos
+            SET label = (?1)
+            WHERE
+                id = (?2)
+        ";
+        if let Ok(mut stmt) = self.conn.prepare(query) {
+            let _ = stmt.execute([label, &id.to_string()]);
+        }
+    }
 }
