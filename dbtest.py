@@ -1,7 +1,7 @@
 # This python is script is to fill the database with random data from [jsonplaceholder](https://jsonplaceholder.typicode.com/) API
 
 import sqlite3
-import urllib3
+import requests
 
 conn = sqlite3.connect("todos.db")
 cur = conn.cursor()
@@ -15,7 +15,7 @@ cur.execute(
 )
 conn.commit()
 
-resp = urllib3.request("GET", "https://jsonplaceholder.typicode.com/todos/")
+resp = requests.get("https://jsonplaceholder.typicode.com/todos/")
 todos = resp.json()
 todos = [(x["title"], 1 if x["completed"] else 0) for x in todos]
 
