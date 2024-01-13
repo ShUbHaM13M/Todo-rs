@@ -1,6 +1,6 @@
 use std::{collections::HashMap, process};
 
-use ratatui::widgets::ListState;
+use ratatui::widgets::{ListState, ScrollbarState};
 
 use crate::{db::TodoDb, todo::Todo};
 
@@ -9,6 +9,8 @@ pub enum CurrentScreen {
     AddTodo,
     DeleteTodo,
     EditTodo,
+    Selection,
+    Search,
 }
 
 pub struct App {
@@ -18,12 +20,16 @@ pub struct App {
     pub current_screen: CurrentScreen,
     pub todo_input: String,
     pub selected_todo: ListState,
+    pub scroll_state: ScrollbarState,
+    // TODO
+    pub search_query: String,
 }
 
 impl App {
     pub fn new() -> Self {
         if let Ok(todos_db) = TodoDb::new("todos.db") {
             let todos = todos_db.get_all_todos().unwrap_or_default();
+            let todos_len = todos.len();
             Self {
                 todos,
                 todos_db,
@@ -31,6 +37,8 @@ impl App {
                 current_screen: CurrentScreen::Main,
                 todo_input: String::new(),
                 selected_todo: ListState::default(),
+                scroll_state: ScrollbarState::new(todos_len).position(0),
+                search_query: String::new(),
             }
         } else {
             process::exit(1);
@@ -51,6 +59,16 @@ impl App {
         }
     }
 
+    pub fn go_to_top(&mut self) {
+        self.selected_todo.select(Some(0));
+        self.scroll_state.first();
+    }
+
+    pub fn go_to_bottom(&mut self) {
+        self.selected_todo.select(Some(self.todos.len() - 1));
+        self.scroll_state.last();
+    }
+
     pub fn select_next_todo(&mut self) {
         let i = match self.selected_todo.selected() {
             Some(i) => {
@@ -63,6 +81,11 @@ impl App {
             None => 0,
         };
         self.selected_todo.select(Some(i));
+        if i == 0 {
+            self.scroll_state.first();
+            return;
+        }
+        self.scroll_state.next();
     }
 
     pub fn select_prev_todo(&mut self) {
@@ -77,6 +100,11 @@ impl App {
             None => 0,
         };
         self.selected_todo.select(Some(i));
+        if i == self.todos.len() - 1 {
+            self.scroll_state.last();
+            return;
+        }
+        self.scroll_state.prev();
     }
 
     pub fn toggle_selected_todo(&mut self) {
@@ -95,7 +123,7 @@ impl App {
         None
     }
 
-    fn get_selected_todo_id(&self) -> Option<i64> {
+    pub fn get_selected_todo_id(&self) -> Option<i64> {
         let selected_index = match self.selected_todo.selected() {
             Some(index) => index,
             None => return None,

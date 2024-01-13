@@ -23,11 +23,27 @@ fn handle_main_screen_events(app: &mut App, key: &KeyEvent) {
             app.todo_input = String::from(&todo.label);
             app.current_screen = CurrentScreen::EditTodo;
         }
+        KeyCode::Char('g') => {
+            app.go_to_top();
+        }
+        KeyCode::Char('G') => {
+            app.go_to_bottom();
+        }
+        KeyCode::Char('v') => {
+            if app.selected_todo.selected().is_none() {
+                app.selected_todo.select(Some(0));
+            }
+            app.current_screen = CurrentScreen::Selection;
+        }
         KeyCode::Char('j') => {
             app.select_next_todo();
         }
         KeyCode::Char('k') => {
             app.select_prev_todo();
+        }
+        KeyCode::Char('/') => {
+            app.current_screen = CurrentScreen::Search;
+            app.search_query.clear();
         }
         KeyCode::Char(' ') => {
             app.toggle_selected_todo();
@@ -46,6 +62,9 @@ fn handle_add_screen_events(app: &mut App, key: &KeyEvent) {
             let _ = app.todo_input.pop();
         }
         KeyCode::Enter => {
+            if app.todo_input.len() == 0 {
+                return;
+            }
             app.add_todo();
             app.current_screen = CurrentScreen::Main;
         }
@@ -58,10 +77,10 @@ fn handle_add_screen_events(app: &mut App, key: &KeyEvent) {
 
 fn handle_delete_screen_events(app: &mut App, key: &KeyEvent) {
     match key.code {
-        KeyCode::Esc | KeyCode::Char('n') => {
+        KeyCode::Esc | KeyCode::Char('n') | KeyCode::Char('N') => {
             app.current_screen = CurrentScreen::Main;
         }
-        KeyCode::Char('y') => {
+        KeyCode::Char('y') | KeyCode::Char('Y') => {
             app.delete_selected_todo();
             app.current_screen = CurrentScreen::Main;
         }
@@ -82,9 +101,29 @@ fn handle_edit_screen_events(app: &mut App, key: &KeyEvent) {
             let _ = app.todo_input.pop();
         }
         KeyCode::Enter => {
-            app.update_selected_todo();
+            if app.todo_input.len() == 0 {
+                app.delete_selected_todo();
+            } else {
+                app.update_selected_todo();
+            }
             app.current_screen = CurrentScreen::Main;
         }
+        _ => {}
+    }
+}
+
+fn handle_selection_screen_events(app: &mut App, key: &KeyEvent) {
+    match key.code {
+        KeyCode::Esc | KeyCode::Char('q') => app.current_screen = CurrentScreen::Main,
+        KeyCode::Char('j') => {}
+        _ => {}
+    }
+}
+
+fn handle_search_screen_events(app: &mut App, key: &KeyEvent) {
+    match key.code {
+        KeyCode::Esc => app.current_screen = CurrentScreen::Main,
+        KeyCode::Char(c) => app.search_query.push(c),
         _ => {}
     }
 }
@@ -95,5 +134,7 @@ pub fn update(app: &mut App, key: KeyEvent) {
         CurrentScreen::AddTodo => handle_add_screen_events(app, &key),
         CurrentScreen::DeleteTodo => handle_delete_screen_events(app, &key),
         CurrentScreen::EditTodo => handle_edit_screen_events(app, &key),
+        CurrentScreen::Selection => handle_selection_screen_events(app, &key),
+        CurrentScreen::Search => handle_search_screen_events(app, &key),
     }
 }
